@@ -1,4 +1,4 @@
-```yaml
+
 name: Build Android APK
 
 on:
@@ -100,4 +100,4 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 7
-```
+
