@@ -1,3 +1,4 @@
+
 name: Build Android APK
 
 on:
@@ -5,8 +6,12 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +28,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+          validate-wrappers: false
+
+      - name: Check project files
+        run: |
+          ls -la
+          ls -la app
+          test -f settings.gradle.kts
+          test -f app/build.gradle.kts
 
       - name: Build release APK
         run: gradle --no-daemon :app:assembleRelease
@@ -33,3 +46,4 @@ jobs:
           name: SSMediaOS-Android-APK
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+          retention-days: 7
