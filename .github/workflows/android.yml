@@ -1,4 +1,4 @@
-
+```yaml
 name: Build Android APK
 
 on:
@@ -90,14 +90,14 @@ jobs:
           echo "Project files arranged."
           find app/src/main -maxdepth 5 -type f
 
-      - name: Build release APK
-        run: gradle --no-daemon :app:assembleRelease
+      - name: Build signed debug APK
+        run: gradle --no-daemon :app:assembleDebug
 
-      - name: Upload APK
+      - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
           name: SSMediaOS-Android-APK
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
-
+```
