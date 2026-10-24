@@ -94,7 +94,7 @@ class MainActivity : Activity() {
     private fun edit(hintText: String, secret: Boolean) = EditText(this).apply {
         hint = hintText
         textSize = 15f
-        singleLine = !secret
+        setSingleLine(!secret)
         if (secret) inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         setPadding(dp(12), dp(10), dp(12), dp(10))
         background = getDrawable(android.R.drawable.edit_text)
