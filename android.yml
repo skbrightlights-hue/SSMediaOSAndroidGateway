@@ -40,32 +40,48 @@ jobs:
 
           for file in MainActivity.kt GatewayService.kt SecureConfig.kt ApiClient.kt SmsSentReceiver.kt; do
             if [ -f "$file" ]; then
-              mv "$file" app/src/main/java/com/ssmediaos/smsgateway/
+              cp "$file" app/src/main/java/com/ssmediaos/smsgateway/
             fi
           done
 
           if [ -f AndroidManifest.xml ]; then
-            mv AndroidManifest.xml app/src/main/
+            cp AndroidManifest.xml app/src/main/
           fi
 
           if [ -f styles.xml ]; then
-            mv styles.xml app/src/main/res/values/
+            cp styles.xml app/src/main/res/values/
           fi
 
-          # Copy the logo from the repository root if present.
           if [ -f ic_ssmediaos_logo.xml ]; then
-            cp ic_ssmediaos_logo.xml app/src/main/res/drawable/ic_ssmediaos_logo.xml
+            cp ic_ssmediaos_logo.xml app/src/main/res/drawable/
           fi
 
-          # Stop with a clear message if the Android resource is missing.
           if [ ! -f app/src/main/res/drawable/ic_ssmediaos_logo.xml ]; then
-            echo "ERROR: ic_ssmediaos_logo.xml was not found."
-            echo "Expected: app/src/main/res/drawable/ic_ssmediaos_logo.xml"
+            echo "ERROR: ic_ssmediaos_logo.xml not found!"
+            find . -type f -name 'ic_ssmediaos_logo.xml' -not -path './.git/*' -print
             exit 1
           fi
 
-          echo "Logo resource found:"
-          ls -l app/src/main/res/drawable/ic_ssmediaos_logo.xml
+          cat > settings.gradle.kts <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "SSMediaOSAndroidGateway"
+          include(":app")
+          EOF
 
           cat > build.gradle.kts <<'EOF'
           plugins {
@@ -103,8 +119,8 @@ jobs:
           }
           EOF
 
-          echo "Project files arranged."
-          find app/src/main -maxdepth 5 -type f
+          echo "=== Android source files ==="
+          find app/src/main -maxdepth 8 -type f -print
 
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
