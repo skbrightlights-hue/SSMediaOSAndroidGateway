@@ -1,4 +1,4 @@
-
+```yaml
 name: Build Android APK
 
 on:
@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   build:
-    name: Build Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -30,12 +29,66 @@ jobs:
           gradle-version: "8.9"
           validate-wrappers: false
 
-      - name: Check project files
+      - name: Arrange Android project files
+        shell: bash
         run: |
-          ls -la
-          ls -la app
-          test -f settings.gradle.kts
-          test -f app/build.gradle.kts
+          set -e
+
+          mkdir -p app/src/main/java/com/ssmediaos/smsgateway
+          mkdir -p app/src/main/res/values
+
+          for file in MainActivity.kt GatewayService.kt SecureConfig.kt ApiClient.kt SmsSentReceiver.kt; do
+            if [ -f "$file" ]; then
+              mv "$file" app/src/main/java/com/ssmediaos/smsgateway/
+            fi
+          done
+
+          if [ -f AndroidManifest.xml ]; then
+            mv AndroidManifest.xml app/src/main/
+          fi
+
+          if [ -f styles.xml ]; then
+            mv styles.xml app/src/main/res/values/
+          fi
+
+          cat > build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application") version "8.7.3" apply false
+              id("org.jetbrains.kotlin.android") version "2.0.21" apply false
+          }
+          EOF
+
+          cat > app/build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+
+          android {
+              namespace = "com.ssmediaos.smsgateway"
+              compileSdk = 35
+
+              defaultConfig {
+                  applicationId = "com.ssmediaos.smsgateway"
+                  minSdk = 26
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0.0"
+              }
+
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+          }
+          EOF
+
+          echo "Project files arranged."
+          find app/src/main -maxdepth 5 -type f
 
       - name: Build release APK
         run: gradle --no-daemon :app:assembleRelease
@@ -47,3 +100,4 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 7
+```
