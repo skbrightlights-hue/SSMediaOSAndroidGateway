@@ -10,6 +10,7 @@
     <application
         android:allowBackup="false"
         android:label="SS MediaOS SMS Gateway"
+        android:icon="@drawable/ic_ssmediaos_logo"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
         <activity
