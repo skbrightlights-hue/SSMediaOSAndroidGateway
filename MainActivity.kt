@@ -83,11 +83,29 @@ class MainActivity : Activity() {
         content.addView(startButton, matchWrap())
         content.addView(Button(this).apply {
             text = "Stop SMS Service"
-            setOnClickListener { stopService(Intent(this@MainActivity, GatewayService::class.java)); status.text = "SMS service stopped" }
+            setOnClickListener {
+                val stopIntent = Intent(this@MainActivity, GatewayService::class.java).apply {
+                    action = GatewayService.ACTION_STOP
+                }
+                // The Activity is visible here, so sending the explicit stop command is allowed.
+                startService(stopIntent)
+                status.text = "Manual stop requested. Gateway auto-resume is disabled."
+                Toast.makeText(this@MainActivity, "SMS Gateway stopped", Toast.LENGTH_SHORT).show()
+            }
         }, matchWrap())
         content.addView(Button(this).apply {
             text = "Clear Saved Credentials"
-            setOnClickListener { stopService(Intent(this@MainActivity, GatewayService::class.java)); SecureConfig.clear(this@MainActivity); baseUrl.text.clear(); deviceCode.text.clear(); token.text.clear(); status.text = "Saved credentials cleared" }
+            setOnClickListener {
+                val stopIntent = Intent(this@MainActivity, GatewayService::class.java).apply {
+                    action = GatewayService.ACTION_STOP
+                }
+                startService(stopIntent)
+                SecureConfig.clear(this@MainActivity)
+                baseUrl.text.clear()
+                deviceCode.text.clear()
+                token.text.clear()
+                status.text = "Gateway stopped and saved credentials cleared."
+            }
         }, matchWrap())
         status = TextView(this).apply {
             text = "Status: not started"
@@ -200,7 +218,9 @@ class MainActivity : Activity() {
     private fun startGateway() {
         val config = SecureConfig.load(this)
         if (config == null) { status.text = "Configuration could not be read. Please save it again."; return }
-        val intent = Intent(this, GatewayService::class.java)
+        val intent = Intent(this, GatewayService::class.java).apply {
+            action = GatewayService.ACTION_START
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
         status.text = "SMS service started. Check the persistent notification for connection status."
         Toast.makeText(this, "SMS service started", Toast.LENGTH_LONG).show()
